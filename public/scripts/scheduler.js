@@ -21,19 +21,20 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function showPopup() {
-  const outcomes = [
-    "✔️ Patient successfully scheduled!",
-    "⚠️ No available doctors for treatment.",
-    "❌ Cannot accommodate within the needed timeframe."
-  ];
-  const index = Math.floor(Math.random() * outcomes.length);
-  const message = outcomes[index];
-  alert(message);
+  const index = Math.floor(Math.random() * 3);
 
-  if (index === 0) {
-    addPatientLog();
+    if (index === 0) {
+      addPatientLog();
+    } else if (index === 1) {
+      document.getElementById("popup-no-doctor").style.display = "flex";
+    } else if (index === 2) {
+      document.getElementById("popup-timeframe").style.display = "flex";
+    }
   }
-}
+
+  function closePopup() {
+    document.getElementById("popup-no-doctor").style.display = "none";
+  }
 
 function addPatientLog() {
   const tableBody = document.getElementById("log-body");

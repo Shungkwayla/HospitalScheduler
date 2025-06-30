@@ -1,0 +1,140 @@
+.box {
+  width: 739px;
+  height: 313px;
+}
+
+.box .group {
+  position: relative;
+  width: 739px;
+  height: 313px;
+}
+
+.box .overlap {
+  width: 743px;
+  position: relative;
+  height: 313px;
+}
+
+.box .overlap-group-wrapper {
+  position: absolute;
+  width: 743px;
+  height: 313px;
+  top: 0;
+  left: 0;
+}
+
+.box .overlap-group {
+  width: 739px;
+  background-color: #fbfbfb;
+  position: relative;
+  height: 313px;
+}
+
+.box .border {
+  position: absolute;
+  width: 685px;
+  height: 255px;
+  top: 33px;
+  left: 28px;
+  border: 1px solid;
+  border-color: #c92b2b;
+}
+
+.box .panel {
+  position: absolute;
+  width: 238px;
+  height: 56px;
+  top: 53px;
+  left: 46px;
+  background-color: #035a8f;
+}
+
+.box .div {
+  position: absolute;
+  width: 239px;
+  height: 56px;
+  top: 53px;
+  left: 457px;
+  background-color: #035a8f;
+}
+
+.box .logo {
+  position: absolute;
+  width: 191px;
+  height: 61px;
+  top: 51px;
+  left: 274px;
+}
+
+.box .there-are-currently {
+  position: absolute;
+  width: 605px;
+  top: 196px;
+  left: 67px;
+  font-family: "Inria Serif-Light", Helvetica;
+  font-weight: 400;
+  color: #000000;
+  font-size: 16px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: 20px;
+}
+
+.box .text-wrapper {
+  font-weight: 300;
+}
+
+.box .span {
+  font-family: "Inria Serif-Bold", Helvetica;
+  font-weight: 700;
+}
+
+.box .text-wrapper-2 {
+  position: absolute;
+  top: 160px;
+  left: 129px;
+  font-family: "Konkhmer Sleokchher-Regular", Helvetica;
+  font-weight: 400;
+  color: #000000;
+  font-size: 40px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: 11px;
+  white-space: nowrap;
+}
+
+.box .frame-wrapper {
+  position: absolute;
+  width: 37px;
+  height: 35px;
+  top: 63px;
+  left: 650px;
+}
+
+.box .frame {
+  position: relative;
+  height: 35px;
+  background-color: #ffffff;
+}
+
+.box .img {
+  position: absolute;
+  width: 26px;
+  height: 25px;
+  top: 5px;
+  left: 6px;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); /* semi-transparent black */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
