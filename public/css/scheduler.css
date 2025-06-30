@@ -31,6 +31,7 @@ body {
   height: 60px;
 }
 .title-bar h1 {
+  font-weight: bold;
   color: #035a8f;
   font-size: 32px;
 }
@@ -58,6 +59,7 @@ body {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 .form-section h2 {
+  font-weight: bold;
   font-size: 24px;
   margin-bottom: 10px;
 }
@@ -100,6 +102,7 @@ body {
   justify-content: space-between;
   padding: 20px;
   font-size: 24px;
+  font-weight: bold;
   color: #035a8f;
   background: white;
 }
@@ -114,6 +117,7 @@ table {
 }
 table th {
   background: #035a8f;
+  font-weight: bold;
   color: white;
   padding: 10px;
   text-align: left;
