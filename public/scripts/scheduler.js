@@ -34,7 +34,8 @@ function showPopup() {
 
   function closePopup() {
     document.getElementById("popup-no-doctor").style.display = "none";
-  }
+    document.getElementById("popup-timeframe").style.display = "none";
+    }
 
 function addPatientLog() {
   const tableBody = document.getElementById("log-body");
