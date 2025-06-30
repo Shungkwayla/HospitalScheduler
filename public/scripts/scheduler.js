@@ -44,9 +44,10 @@ function addPatientLog() {
   const condition = document.getElementById("admission").value || "N/A";
 
   const now = new Date();
-  const timeLogged = now.toLocaleTimeString();
+  const timeOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
+  const timeLogged = now.toLocaleTimeString([], timeOptions);
   const startTime = timeLogged;
-  const endTime = new Date(now.getTime() + 30 * 60000).toLocaleTimeString(); // 30 minutes after
+  const endTime = new Date(now.getTime() + 30 * 60000).toLocaleTimeString([], timeOptions); // 30 minutes later
 
   const row = document.createElement("tr");
   row.innerHTML = `
@@ -62,6 +63,7 @@ function addPatientLog() {
 
   document.getElementById("patient-form").reset();
 }
+
 
 function getRandomDoctor() {
   const doctors = ["Dr. Santos", "Dr. Reyes", "Dr. Cruz", "Dr. Lopez"];
