@@ -1,0 +1,86 @@
+body {
+  display: flex;
+  margin: 0;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  background-color: #f0f4f8;
+  color: #333;
+}
+
+.header {
+  display: flex;
+  height: 360px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.background-img {
+  width: 100vw;
+  opacity: 0.5;
+}
+
+.logo-img {
+  position: relative;
+  width: 700px;
+  margin-top: -18%;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.greeting {
+  position: relative;
+  display: flex;
+  height: 100px;
+  width: 100vw;
+  align-items: center;
+  justify-content: center;
+  background-color: #035a8f;
+}
+
+h1 {
+  color: white;
+}
+
+p {
+  display: block;
+  font-size: 20px;
+}
+
+a {
+  text-decoration: none;
+}
+
+button {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+  padding: 20px 150px;
+  border: none;
+  border-radius: 15px;
+  transition: background-color 0.3s ease;
+}
+
+#patient {
+  background-color: #035a8f;
+}
+
+#doctor {
+  background-color: #c2322f;
+  padding: 20px 151px;
+}
+
+#patient:hover {
+  background-color: #023d63;
+}
+
+#doctor:hover {
+  background-color: #a12b2c;
+}
