@@ -1,11 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Hospital Scheduler</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Home - Doctor Scheduler</title>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <h1>Trial only</h1>
-  <script src="script.js"></script>
+  <div class="header">
+    <h1>Welcome to Doctor Scheduler</h1>
+  </div>
+
+  <div class="content">
+    <p>This is the homepage. Click a button to continue:</p>
+
+    <button id="welcomeBtn">Say Hello</button>
+
+    <!-- NEW: Navigate to Scheduler page -->
+    <a href="scheduler.html">
+      <button class="nav-button">Go to Scheduler</button>
+    </a>
+
+    <p class="timestamp">Current Time: <span id="currentTime">--:--:--</span></p>
+  </div>
+
+  <script src="scripts/shared.js"></script>
+  <script src="scripts/main.js"></script>
 </body>
 </html>
