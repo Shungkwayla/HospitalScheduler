@@ -23,16 +23,29 @@ document.addEventListener("DOMContentLoaded", () => {
 function showPopup() {
   const index = Math.floor(Math.random() * 3);
 
-    if (index === 0) {
-      addPatientLog();
-    } else if (index === 1) {
-      document.getElementById("popup-no-doctor").style.display = "flex";
-    } else if (index === 2) {
-      document.getElementById("popup-timeframe").style.display = "flex";
+    const allPopups = ["popup-success", "popup-no-doctor", "popup-timeframe"];
+      allPopups.forEach(id => {
+        document.getElementById(id).classList.remove("bounce-animation");
+      });
+
+      let popupId = "";
+      if (index === 0) {
+        popupId = "popup-success";
+        addPatientLog();
+      } else if (index === 1) {
+        popupId = "popup-no-doctor";
+      } else {
+        popupId = "popup-timeframe";
+      }
+
+      const popup = document.getElementById(popupId);
+      popup.style.display = "flex";
+      void popup.offsetWidth;
+      popup.classList.add("bounce-animation");
     }
-  }
 
   function closePopup() {
+    document.getElementById("popup-success").style.display = "none";
     document.getElementById("popup-no-doctor").style.display = "none";
     document.getElementById("popup-timeframe").style.display = "none";
     }
@@ -48,6 +61,7 @@ function addPatientLog() {
   const timeLogged = now.toLocaleTimeString([], timeOptions);
   const startTime = timeLogged;
   const endTime = new Date(now.getTime() + 30 * 60000).toLocaleTimeString([], timeOptions); // 30 minutes later
+  const doctor = getRandomDoctor();
 
   const row = document.createElement("tr");
   row.innerHTML = `
@@ -61,9 +75,23 @@ function addPatientLog() {
   `;
   tableBody.appendChild(row);
 
+  const successDetails = document.getElementById("success-details");
+    successDetails.innerHTML = `
+      <div class="success-row">
+        <p><span>Patient:</span> ${fullname}</p>
+        <p><span>Condition:</span> ${condition}</p>
+        <p><span>Doctor:</span> ${doctor}</p>
+        <p><span>Duration:</span> 30 mins</p>
+      </div>
+      <div class="success-row">
+        <p><span>Start:</span> ${startTime}</p>
+        <p><span>End:</span> ${endTime}</p>
+      </div>
+    `;
+
+
   document.getElementById("patient-form").reset();
 }
-
 
 function getRandomDoctor() {
   const doctors = ["Dr. Santos", "Dr. Reyes", "Dr. Cruz", "Dr. Lopez"];
