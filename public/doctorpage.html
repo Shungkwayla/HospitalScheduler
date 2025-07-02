@@ -41,9 +41,44 @@
             width: auto;
         }
 
+        .back-button-container {
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .back-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8fafc;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background: #e5e7eb;
+            border-color: #9ca3af;
+            color: #1f2937;
+        }
+
+        .back-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
         .main-container {
             display: flex;
-            min-height: calc(100vh - 80px);
+            min-height: calc(100vh - 80px - 60px);
         }
 
         .left-panel {
@@ -268,6 +303,10 @@
                 padding: 2rem 1rem;
                 min-height: 200px;
             }
+
+            .back-button-container {
+                padding: 0.75rem 1rem;
+            }
         }
     </style>
 </head>
@@ -278,6 +317,16 @@
         </div>
         <div class="header-right"></div>
     </header>
+
+    <!-- Back Button Section -->
+    <div class="back-button-container">
+        <button class="back-button" onclick="goBack()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back
+        </button>
+    </div>
 
     <div class="main-container">
         <!-- Left Panel - Scheduled Doctors -->
@@ -373,6 +422,17 @@
     </div>
 
     <script>
+        // Back button functionality
+        function goBack() {
+            // Try to go back in browser history
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                // If no history, redirect to a default page (you can customize this)
+                window.location.href = '/'; // or '../index.html' or any other page
+            }
+        }
+
         // Function to format doctor name with "Dr." prefix
         function formatDoctorName(name) {
             // Remove any existing "Dr." or "Dr" prefix (case insensitive)
