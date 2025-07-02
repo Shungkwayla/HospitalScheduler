@@ -1,464 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doctor Scheduler - MEDISYNC Health System</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
-            min-height: 100vh;
-        }
-
-        .header {
-            display: flex;
-            height: 80px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .header-left {
-            background: white;
-            padding: 1rem 2rem;
-            display: flex;
-            align-items: center;
-            flex: 0 0 auto;
-        }
-
-        .header-right {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            flex: 1;
-        }
-
-        .logo {
-            height: 60px;
-            width: auto;
-        }
-
-        .main-container {
-            display: flex;
-            min-height: calc(100vh - 80px);
-        }
-
-        .left-panel {
-            flex: 1;
-            background: white;
-            padding: 2rem;
-            border-right: 1px solid #e5e7eb;
-        }
-
-        .right-panel {
-            flex: 1;
-            background: #f9fafb;
-            padding: 2rem;
-        }
-
-        .panel-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #2563eb;
-        }
-
-        .doctor-card {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .doctor-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .doctor-name {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.5rem;
-        }
-
-        .doctor-profession {
-            color: #2563eb;
-            font-weight: 500;
-            margin-bottom: 0.75rem;
-        }
-
-        .doctor-schedule {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: #6b7280;
-            font-size: 0.9rem;
-        }
-
-        .schedule-day, .schedule-time {
-            background: #f3f4f6;
-            padding: 0.25rem 0.75rem;
-            border-radius: 4px;
-            font-weight: 500;
-        }
-
-        .schedule-day {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .form-container {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-input, .form-select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .form-input:focus, .form-select:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .form-row {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: white;
-            border: none;
-            padding: 0.875rem 2rem;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            width: 100%;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-        }
-
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .day-checkbox {
-            display: none;
-        }
-
-        .day-label {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem;
-            border: 2px solid #d1d5db;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
-            text-align: center;
-        }
-
-        .day-checkbox:checked + .day-label {
-            background: #2563eb;
-            color: white;
-            border-color: #2563eb;
-        }
-
-        .day-label:hover {
-            border-color: #2563eb;
-            background: #f0f7ff;
-        }
-
-        .day-checkbox:checked + .day-label:hover {
-            background: #1d4ed8;
-        }
-
-        .empty-state {
-            text-align: center;
-            color: #6b7280;
-            padding: 4rem 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 300px;
-        }
-
-        .empty-state-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            color: #d1d5db;
-        }
-
-        .empty-state h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state p {
-            font-size: 1rem;
-            color: #6b7280;
-            max-width: 300px;
-            line-height: 1.5;
-        }
-
-        @media (max-width: 768px) {
-            .main-container {
-                flex-direction: column;
-            }
-            
-            .left-panel, .right-panel {
-                padding: 1rem;
-            }
-            
-            .form-row {
-                flex-direction: column;
-                gap: 0;
-            }
-
-            .days-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .empty-state {
-                padding: 2rem 1rem;
-                min-height: 200px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doctor Scheduler – MEDISYNC</title>
+  <link rel="stylesheet" href="css/doctor.css" />
 </head>
 <body>
-    <header class="header">
-        <div class="header-left">
-            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/LOGO-tEtmsfNuAN6lv67X8NXtwgD0R9UN0H.png" alt="MEDISYNC Health System" class="logo">
+    
+  <header class="header">
+    <div class="title-bar">
+    <div class="title-left">
+        <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/LOGO-tEtmsfNuAN6lv67X8NXtwgD0R9UN0H.png" alt="MEDISYNC Logo" />
+        <h1>Doctor Information Page</h1>
+    </div>
+    <button class="back-button" onclick="history.back()">← Back</button>
+    </div>
+  </header>
+
+
+  <div class="main-container">
+
+    <div class="left-panel">
+      <h2 class="panel-title">Scheduled Doctors</h2>
+      <div id="doctorsList">
+        <div id="emptyState" class="empty-state">
+          <div class="empty-state-icon">🩺</div>
+          <h3>No Doctors Scheduled</h3>
+          <p>Start by adding your first doctor schedule.</p>
         </div>
-        <div class="header-right"></div>
-    </header>
-
-    <div class="main-container">
-        <!-- Left Panel - Scheduled Doctors -->
-        <div class="left-panel">
-            <h2 class="panel-title">Scheduled Doctors</h2>
-            
-            <div id="doctorsList">
-                <!-- Empty state -->
-                <div class="empty-state" id="emptyState">
-                    <div class="empty-state-icon">🩺</div>
-                    <h3>No Doctors Scheduled</h3>
-                    <p>Start by adding your first doctor schedule using the form on the right.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Panel - Add Schedule Form -->
-        <div class="right-panel">
-            <h2 class="panel-title">Add Doctor Schedule</h2>
-            
-            <div class="form-container">
-                <form id="scheduleForm">
-                    <div class="form-group">
-                        <label for="doctorName" class="form-label">Doctor Name</label>
-                        <input type="text" id="doctorName" name="doctorName" class="form-input" placeholder="Enter doctor's name (without Dr. prefix)" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="profession" class="form-label">Medical Profession</label>
-                        <select id="profession" name="profession" class="form-select" required>
-                            <option value="">Select profession</option>
-                            <option value="Cardiologist">Cardiologist</option>
-                            <option value="Neurologist">Neurologist</option>
-                            <option value="Pediatrician">Pediatrician</option>
-                            <option value="Orthopedic Surgeon">Orthopedic Surgeon</option>
-                            <option value="Dermatologist">Dermatologist</option>
-                            <option value="Psychiatrist">Psychiatrist</option>
-                            <option value="Radiologist">Radiologist</option>
-                            <option value="Anesthesiologist">Anesthesiologist</option>
-                            <option value="Emergency Medicine">Emergency Medicine</option>
-                            <option value="Family Medicine">Family Medicine</option>
-                            <option value="Internal Medicine">Internal Medicine</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Available Days</label>
-                        <div class="days-grid">
-                            <input type="checkbox" id="monday" name="days" value="Monday" class="day-checkbox">
-                            <label for="monday" class="day-label">Monday</label>
-                            
-                            <input type="checkbox" id="tuesday" name="days" value="Tuesday" class="day-checkbox">
-                            <label for="tuesday" class="day-label">Tuesday</label>
-                            
-                            <input type="checkbox" id="wednesday" name="days" value="Wednesday" class="day-checkbox">
-                            <label for="wednesday" class="day-label">Wednesday</label>
-                            
-                            <input type="checkbox" id="thursday" name="days" value="Thursday" class="day-checkbox">
-                            <label for="thursday" class="day-label">Thursday</label>
-                            
-                            <input type="checkbox" id="friday" name="days" value="Friday" class="day-checkbox">
-                            <label for="friday" class="day-label">Friday</label>
-                            
-                            <input type="checkbox" id="saturday" name="days" value="Saturday" class="day-checkbox">
-                            <label for="saturday" class="day-label">Saturday</label>
-                            
-                            <input type="checkbox" id="sunday" name="days" value="Sunday" class="day-checkbox">
-                            <label for="sunday" class="day-label">Sunday</label>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="timeIn" class="form-label">Time In</label>
-                            <input type="time" id="timeIn" name="timeIn" class="form-input" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="timeOut" class="form-label">Time Out</label>
-                            <input type="time" id="timeOut" name="timeOut" class="form-input" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="notes" class="form-label">Additional Notes (Optional)</label>
-                        <input type="text" id="notes" name="notes" class="form-input" placeholder="Any special notes or requirements">
-                    </div>
-
-                    <button type="submit" class="btn-primary">Add Doctor Schedule</button>
-                </form>
-            </div>
-        </div>
+      </div>
     </div>
 
-    <script>
-        // Function to format doctor name with "Dr." prefix
-        function formatDoctorName(name) {
-            // Remove any existing "Dr." or "Dr" prefix (case insensitive)
-            const cleanName = name.replace(/^(dr\.?\s*)/i, '').trim();
-            
-            // Add "Dr." prefix
-            return `Dr. ${cleanName}`;
-        }
+    <div class="right-panel">
+      <h2 id="formTitle" class="panel-title">Add Doctor Schedule</h2>
 
-        // Handle form submission
-        document.getElementById('scheduleForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const doctorName = formData.get('doctorName');
-            const profession = formData.get('profession');
-            const selectedDays = formData.getAll('days');
-            
-            // Check if at least one day is selected
-            if (selectedDays.length === 0) {
-                alert('Please select at least one day for the schedule.');
-                return;
-            }
-            
-            // Hide empty state when first doctor is added
-            const emptyState = document.getElementById('emptyState');
-            if (emptyState) {
-                emptyState.style.display = 'none';
-            }
-            
-            // Format doctor name with "Dr." prefix
-            const formattedDoctorName = formatDoctorName(doctorName);
-            
-            const timeIn = formData.get('timeIn');
-            const timeOut = formData.get('timeOut');
+      <div class="form-container">
+        <form id="scheduleForm">
+          <input type="hidden" id="idDoctor" name="idDoctor">
 
-            // Validate that time out is after time in
-            if (timeIn >= timeOut) {
-                alert('Time Out must be after Time In.');
-                return;
-            }
+          <div class="form-group">
+            <label class="form-label" for="doctorName">Doctor Name</label>
+            <input class="form-input" id="doctorName" name="doctorName" required>
+          </div>
 
-            // Format times for display
-            const timeInObj = new Date(`2000-01-01T${timeIn}`);
-            const timeOutObj = new Date(`2000-01-01T${timeOut}`);
+          <div class="form-group">
+            <label class="form-label" for="profession">Specialization</label>
+            <select class="form-select" id="profession" name="profession" required>
+              <option value="">Select specialization</option>
+              <option>Cardiologist</option><option>Neurologist</option>
+              <option>Pediatrician</option><option>Dermatologist</option>
+              <option>General Practitioner</option>
+            </select>
+          </div>
 
-            const formattedTimeIn = timeInObj.toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
-                minute: '2-digit',
-                hour12: true 
-            });
+          <div class="form-group">
+            <label class="form-label">Available Days</label>
+            <div class="days-grid">
+              <input type="checkbox" id="dMon" value="Mon" name="days[]" class="day-checkbox"><label for="dMon" class="day-label">Mon</label>
+              <input type="checkbox" id="dTue" value="Tue" name="days[]" class="day-checkbox"><label for="dTue" class="day-label">Tue</label>
+              <input type="checkbox" id="dWed" value="Wed" name="days[]" class="day-checkbox"><label for="dWed" class="day-label">Wed</label>
+              <input type="checkbox" id="dThu" value="Thu" name="days[]" class="day-checkbox"><label for="dThu" class="day-label">Thu</label>
+              <input type="checkbox" id="dFri" value="Fri" name="days[]" class="day-checkbox"><label for="dFri" class="day-label">Fri</label>
+              <input type="checkbox" id="dSat" value="Sat" name="days[]" class="day-checkbox"><label for="dSat" class="day-label">Sat</label>
+              <input type="checkbox" id="dSun" value="Sun" name="days[]" class="day-checkbox"><label for="dSun" class="day-label">Sun</label>
+            </div>
+          </div>
 
-            const formattedTimeOut = timeOutObj.toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
-                minute: '2-digit',
-                hour12: true 
-            });
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="timeIn">Shift Start</label>
+              <input type="time" id="timeIn" name="timeIn" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="timeOut">Shift End</label>
+              <input type="time" id="timeOut" name="timeOut" class="form-input" required>
+            </div>
+          </div>
 
-            const timeRange = `${formattedTimeIn} - ${formattedTimeOut}`;
-            
-            // Create day spans
-            const daySpans = selectedDays.map(day => 
-                `<span class="schedule-day">${day}</span>`
-            ).join('');
-            
-            // Create new doctor card
-            const doctorCard = document.createElement('div');
-            doctorCard.className = 'doctor-card';
-            doctorCard.innerHTML = `
-                <div class="doctor-name">${formattedDoctorName}</div>
-                <div class="doctor-profession">${profession}</div>
-                <div class="doctor-schedule">
-                    ${daySpans}
-                    <span class="schedule-time">${timeRange}</span>
-                </div>
-            `;
-            
-            // Add to doctors list
-            document.getElementById('doctorsList').appendChild(doctorCard);
-            
-            // Reset form
-            this.reset();
-            
-            // Show success message
-            alert(`Doctor schedule added successfully for ${selectedDays.join(', ')}!`);
-        });
-    </script>
+          <button id="submitBtn" class="btn-primary" type="submit">Save Schedule</button>
+          <button id="cancelEdit" class="btn-primary"
+                  style="display:none;margin-top:.5rem;background:#6b7280"
+                  type="button">Cancel Edit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="scripts/doctors.js" defer></script>
 </body>
 </html>

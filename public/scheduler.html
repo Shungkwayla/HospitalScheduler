@@ -3,24 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Doctor-to-Patient Scheduler</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <title>Doctor‑to‑Patient Scheduler</title>
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
   <link rel="stylesheet" href="css/popup-style.css" />
   <link rel="stylesheet" href="css/globals.css" />
-  <link rel="stylesheet" href="css/scheduler.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
-  <script src="scripts/shared.js" defer></script>
+  <link rel="stylesheet" href="css/schedulers.css" />
+
   <script src="scripts/scheduler.js" defer></script>
 </head>
 <body>
-  <div class="header">
-    EMERGENCIES? Call 9732-3892 / 2938-9328 or chat with us
-  </div>
 
+  <div class="header">EMERGENCIES? Call 9732‑3892 / 2938‑9328 or chat with us</div>
   <div class="title-bar">
     <div class="title-left">
       <img src="logo.png" alt="Logo" />
-      <h1>Doctor-to-Patient Scheduler</h1>
+      <h1>Doctor‑to‑Patient Scheduler</h1>
     </div>
     <button class="back-button" onclick="history.back()">← Back</button>
   </div>
@@ -28,25 +27,25 @@
   <div class="main">
     <div class="form-section">
       <div class="form-container">
-        <form id="patient-form" onsubmit="event.preventDefault(); showPopup();">
+        <form id="patient-form">
           <h2>Patient Information</h2>
 
           <div class="form-group">
             <label for="fullname">Fullname:</label>
-            <input type="text" id="fullname" />
+            <input type="text" id="fullname" name="fullname" required />
           </div>
 
           <div class="form-group">
             <label for="age">Age:</label>
-            <select id="age">
+            <select id="age" name="age" required>
               <option value="">Select Age</option>
-              <option value="0-11 months">0–11 months</option>
+              <option value="0‑11 months">0–11 months</option>
             </select>
           </div>
 
           <div class="form-group">
             <label for="sex">Sex:</label>
-            <select id="sex">
+            <select id="sex" name="sex" required>
               <option value="">Select</option>
               <option>Male</option>
               <option>Female</option>
@@ -55,68 +54,65 @@
 
           <div class="form-group">
             <label for="allergies">Allergies:</label>
-            <input type="text" id="allergies" />
+            <input type="text" id="allergies" name="allergies" />
           </div>
 
           <div class="form-group">
             <label for="illnesses">Chronic Illnesses:</label>
-            <input type="text" id="illnesses" />
+            <input type="text" id="illnesses" name="illnesses" />
           </div>
 
           <div class="form-group">
             <label for="admission">ER Admission for:</label>
-            <input type="text" id="admission" />
+            <input type="text" id="admission" name="admission" required />
           </div>
 
           <h2>Contact Information</h2>
 
           <div class="form-group">
             <label for="mobile">Patient's Mobile No:</label>
-            <input type="text" id="mobile" />
+            <input type="text" id="mobile" name="mobile" required />
           </div>
-
+          
           <div class="form-group">
             <label for="contactName">Emergency Contact Name:</label>
-            <input type="text" id="contactName" />
+            <input type="text" id="contactName" name="contactName" required />
           </div>
-
+          
           <div class="form-group">
             <label for="contactNo">Contact's Mobile No:</label>
-            <input type="text" id="contactNo" />
+            <input type="text" id="contactNo" name="contactNo" required />
           </div>
-
+          
           <button type="submit">Proceed</button>
-        </form>
-      </div>
-    </div>
-
-    <div class="log-section">
-      <div class="log-header">
-        <span id="date">Loading date...</span>
-        <span id="time">Loading time...</span>
-      </div>
-      <div class="log-table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Time Logged</th>
-              <th>Patient Name</th>
-              <th>Condition</th>
-              <th>Doctor Name</th>
-              <th>Treatment Duration</th>
-              <th>Start Time</th>
-              <th>End Time</th>
-            </tr>
-          </thead>
-          <tbody id="log-body">
-            <!-- Logs will be added here -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Success Popup -->
+          </form>
+          </div>
+          </div>
+          
+          <div class="log-section">
+            <div class="log-header">
+              <span id="date">Loading date…</span>
+              <span id="time">Loading time…</span>
+            </div>
+            <div class="log-table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Time Logged</th>
+                    <th>Patient Name</th>
+                    <th>Condition</th>
+                    <th>Doctor Name</th>
+                    <th>Treatment Duration</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                  </tr>
+                </thead>
+                <tbody id="log-body"></tbody>
+              </table>
+            </div>
+          </div>
+          </div>
+          
   <div id="popup-success" class="popup-overlay" style="display: none;">
     <div class="box bounce-animation">
       <div class="group">
@@ -147,7 +143,6 @@
     </div>
   </div>
 
-  <!-- No Doctor Available Popup -->
   <div id="popup-no-doctor" class="popup-overlay popup-no-doctor" style="display: none;">
     <div class="box">
       <div class="group">
@@ -184,7 +179,6 @@
     </div>
   </div>
 
-  <!-- Can Not Fit to Sched Popup -->
   <div id="popup-timeframe" class="popup-overlay popup-timeframe" style="display: none;">
     <div class="box">
       <div class="group">
@@ -220,6 +214,5 @@
       </div>
     </div>
   </div>
-
 </body>
 </html>

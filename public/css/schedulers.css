@@ -3,10 +3,11 @@
   margin: 0;
   padding: 0;
 }
-body {
-  font-family: Arial, sans-serif;
-  background: #f0f4f8;
+
+body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, span, div {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
 }
+
 .header {
   background-color: #035a8f;
   color: white;
@@ -14,6 +15,7 @@ body {
   font-size: 24px;
   text-align: center;
 }
+
 .title-bar {
   background: white;
   display: flex;
@@ -22,19 +24,23 @@ body {
   gap: 20px;
   justify-content: space-between;
 }
+
 .title-left {
   display: flex;
   align-items: center;
   gap: 20px;
 }
+
 .title-bar img {
   height: 60px;
 }
+
 .title-bar h1 {
   font-weight: bold;
   color: #035a8f;
   font-size: 32px;
 }
+
 .back-button {
   background: none;
   border: none;
@@ -42,15 +48,18 @@ body {
   font-size: 16px;
   cursor: pointer;
 }
+
 .main {
   display: flex;
   height: calc(100vh - 124px);
 }
+
 .form-section {
   width: 30%;
   background: #f0f4f8;
   overflow-y: auto;
 }
+
 .form-container {
   background: #ffffff;
   margin: 20px;
@@ -58,19 +67,23 @@ body {
   padding: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
+
 .form-section h2 {
   font-weight: bold;
   font-size: 24px;
   margin-bottom: 10px;
 }
+
 .form-group {
   margin-bottom: 15px;
 }
+
 .form-group label {
   display: block;
   margin-bottom: 5px;
   font-size: 16px;
 }
+
 .form-group input,
 .form-group select {
   width: 100%;
@@ -80,6 +93,7 @@ body {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+
 .form-section button {
   width: 100%;
   padding: 15px;
@@ -91,12 +105,14 @@ body {
   cursor: pointer;
   margin-top: 10px;
 }
+
 .log-section {
   width: 70%;
   background: #edf4fa;
   display: flex;
   flex-direction: column;
 }
+
 .log-header {
   display: flex;
   justify-content: space-between;
@@ -106,15 +122,18 @@ body {
   color: #035a8f;
   background: white;
 }
+
 .log-table-wrapper {
   flex-grow: 1;
   overflow-y: auto;
   padding: 20px;
 }
+
 table {
   width: 100%;
   border-collapse: collapse;
 }
+
 table th {
   background: #035a8f;
   font-weight: bold;
@@ -122,14 +141,18 @@ table th {
   padding: 10px;
   text-align: left;
 }
+
 table td {
   padding: 10px;
   text-align: left;
   border-bottom: 1px solid #ccc;
 }
+
 table tbody tr:nth-child(odd) {
   background-color: #ffffff;
 }
+
 table tbody tr:nth-child(even) {
   background-color: #e6f0fa;
 }
+
