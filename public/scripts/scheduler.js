@@ -68,19 +68,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (data.status === "success") {
         insertLogRow(data.row);
-        showPopup("popup-success");
-        form.reset();
-      } else if (data.status === "no_doctor") {
-        showPopup("popup-no-doctor");
-      } else {
-        alert("Server error: " + (data.message || "Unknown"));
+    const successDetails = document.getElementById("success-details");
+          successDetails.innerHTML = `
+            <div class="success-row">
+              <p><span>Patient:</span> ${data.row.PatientName}</p>
+              <p><span>Condition:</span> ${data.row.Condition}</p>
+              <p><span>Doctor:</span> ${data.row.DoctorName}</p>
+            </div>
+            <div class="success-row">
+              <p><span>Duration:</span> ${data.row.Duration}</p>
+              <p><span>Start:</span> ${data.row.StartTime}</p>
+              <p><span>End:</span> ${data.row.EndTime}</p>
+            </div>
+          `;
+          showPopup("popup-success");
+          form.reset();
+        } else if (data.status === "no_doctor") {
+          showPopup("popup-no-doctor");
+        } else {
+          showPopup("popup-timeframe");
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+        alert("Request error: " + err.message);
       }
-    } catch (err) {
-      console.error("Fetch error:", err);
-      alert("Request error: " + err.message);
-    }
+    });
   });
-});
 
 
 function insertLogRow(r) {
