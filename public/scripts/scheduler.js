@@ -82,17 +82,112 @@ document.addEventListener("DOMContentLoaded", () => {
     const durationMinutes = getTreatmentDuration(triage.category);
     fd.set("duration", durationMinutes);
 
+    console.log("Fresh NOW:", new Date());
+
     const now = new Date();
     const deadlineMinutes = parseDeadline(triage.responseTime);
     const deadlineTime = new Date(now.getTime() + deadlineMinutes * 60000);
 
-    fd.set("deadline", deadlineTime.toISOString().slice(0, 19).replace('T', ' '));
+    console.log("Current time:", new Date());
+    console.log("Deadline:", deadlineTime);
+    
 
-    const startTime = deadlineTime;
-    const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
+    const localDeadline = new Date(deadlineTime.getTime() - (deadlineTime.getTimezoneOffset() * 60000))
+      .toISOString().slice(0, 19).replace("T", " ");
+    fd.set("deadline", localDeadline);
 
-    fd.set("start_time", startTime.toLocaleTimeString('en-GB', { hour12: false }));
-    fd.set("end_time", endTime.toLocaleTimeString('en-GB', { hour12: false }));
+    
+
+      console.log("Deadline:", fd.get("deadline"));
+      console.log("FormData before submit:");
+      for (let pair of fd.entries()) {
+        console.log(pair[0]+ ': ' + pair[1]);
+      }
+
+      const docRes = await fetch("doctors.php");
+  const doctorList = await docRes.json();
+
+  console.log("Specialization needed by triage:", triage.specialization);
+
+  doctorList.forEach(doc => {
+  console.log("Doctor available:", doc.DoctorName, "| Specialization:", doc.Specialization);
+  });
+
+  const allDoctors = doctorList.map(doc => ({
+    id: doc.idDoctor,
+    name: doc.DoctorName,
+    specialization: doc.Specialization,
+    availableDays: doc.AvailableDays,
+    shiftStart: doc.ShiftStart,
+    shiftEnd: doc.ShiftEnd
+  }));
+
+  const specialization = triage.specialization || "";
+  const nowEpoch = Date.now();
+  const deadlineEpoch = nowEpoch + deadlineMinutes * 60_000;
+
+  // Filter matching specialization
+  const matchedDoctors = allDoctors.filter(doc =>
+    doc.specialization.toLowerCase() === specialization.toLowerCase()
+  );
+
+  if (matchedDoctors.length === 0) {
+    showPopup("popup-no-doctor");
+    return;
+  }
+
+  // Helper: Convert HH:MM:SS to timestamp today
+  function todayTimeToEpoch(t) {
+    const [h, m, s] = t.split(":").map(Number);
+    const d = new Date();
+    d.setHours(h, m, s || 0, 0);
+    return d.getTime();
+  }
+
+  // Choose doctor with earliest valid schedule
+  let chosenDoctor = null;
+  let chosenStart = null;
+  let chosenEnd = null;
+
+  const today = new Date().toLocaleString("en-US", { weekday: "short" });
+  console.log("Matched doctors with correct specialization:", matchedDoctors);
+
+  for (const doc of matchedDoctors) {
+    const availableDays = doc.availableDays.split(",").map(d => d.trim());
+    if (!availableDays.includes(today)) continue;
+    const shiftStartEpoch = todayTimeToEpoch(doc.shiftStart);
+    const shiftEndEpoch = todayTimeToEpoch(doc.shiftEnd);
+
+    console.log(`Checking ${doc.name} – Days: ${doc.availableDays} vs Today: ${today}`);
+    console.log("→ Is today in available days?", availableDays.includes(today));
+
+    let start = Math.max(nowEpoch, shiftStartEpoch);
+    let end = start + durationMinutes * 60_000;
+
+console.log("Start:", start);
+console.log("End:", end);
+console.log("Shift start:", shiftStartEpoch);
+console.log("Shift end:", shiftEndEpoch);
+console.log("Deadline:", deadlineEpoch);
+    if (start <= deadlineEpoch && end <= shiftEndEpoch) {
+      chosenDoctor = doc;
+      chosenStart = new Date(start);
+      chosenEnd = new Date(end);
+      break;
+    }
+  }
+
+  if (!chosenDoctor) {
+    showPopup("popup-no-doctor");
+    return;
+  }
+
+  // Set final fields
+  fd.set("doctor_id", chosenDoctor.id);
+  fd.set("start_time", chosenStart.toISOString().slice(0, 19).replace("T", " "));
+  fd.set("end_time", chosenEnd.toISOString().slice(0, 19).replace("T", " "));
+
+  console.log("Start:", fd.get("start_time"), "End:", fd.get("end_time"));
 
     try {
       const res = await fetch("mysql.php", { method: "POST", body: fd });
@@ -103,18 +198,18 @@ document.addEventListener("DOMContentLoaded", () => {
         insertLogRow(data.row);
         const successDetails = document.getElementById("success-details");
         successDetails.innerHTML = `
-          <div class="success-row">
-            <p><span>Patient:</span> ${data.row.PatientName}</p>
-            <p><span>Condition:</span> ${data.row.Condition}</p>
-            <p><span>Category:</span> ${triage.category}</p>
-            <p><span>Severity:</span> ${triage.severity}</p>
-          </div>
-          <div class="success-row">
-            <p><span>Duration:</span> ${durationMinutes} mins</p>
-            <p><span>Start:</span> ${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
-            <p><span>End:</span> ${endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
-          </div>
-        `;
+        <div class="success-row">
+          <p><span>Patient:</span> ${data.row.PatientName}</p>
+          <p><span>Condition:</span> ${data.row.Condition}</p>
+          <p><span>Category:</span> ${triage.category}</p>
+          <p><span>Severity:</span> ${triage.severity}</p>
+        </div>
+        <div class="success-row">
+          <p><span>Duration:</span> ${durationMinutes} mins</p>
+          <p><span>Start:</span> ${chosenStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
+          <p><span>End:</span> ${chosenEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
+        </div>
+      `;
         showPopup("popup-success");
         form.reset();
       } else if (data.status === "no_doctor") {
@@ -138,13 +233,14 @@ function insertLogRow(r) {
   const tr = document.createElement("tr");
   tr.dataset.end = r.EndTime;
   tr.innerHTML = `
-    <td>${r.TimeLogged}</td>
-    <td>${r.PatientName}</td>
-    <td>${r.Condition}</td>
-    <td>${r.DoctorName}</td>
-    <td>${r.Duration}</td>
-    <td>${r.StartTime}</td>
-    <td>${r.EndTime}</td>`;
+  <td>${r.TimeLogged}</td>
+  <td>${r.PatientName}</td>
+  <td>${r.Condition}</td>
+  <td>${r.DoctorName}</td>
+  <td>${r.Duration}</td>
+  <td>${r.StartTime}</td>
+  <td>${r.EndTime}</td>
+`;
   body.appendChild(tr);
 }
 
@@ -168,6 +264,7 @@ const triageCategories = [
     category: "Category 1 (RED)",
     severity: "Life Threatening Conditions",
     responseTime: "Seen Immediately",
+    recommendedSpecialization: "Cardiologist",
     symptoms: [
       "cardiac arrest", "respiratory arrest", "extreme respiratory distress",
       "severe shock", "prolonged seizure", "GCS less than 9", "IV overdose",
@@ -178,6 +275,7 @@ const triageCategories = [
     category: "Category 2 (ORANGE)",
     severity: "Imminently Life Threatening or Severe Pain",
     responseTime: "Seen within 10 minutes",
+    recommendedSpecialization: "Neurologist",
     symptoms: [
       "airway risk", "febrile neutropenia", "acute stroke", "testicular torsion",
       "severe hypertension", "toxic ingestion", "severe chest pain", "ectopic pregnancy"
@@ -187,6 +285,7 @@ const triageCategories = [
     category: "Category 3 (GREEN)",
     severity: "Potentially Life Threatening or Severe Pain",
     responseTime: "Seen within 30 minutes",
+    recommendedSpecialization: "Pediatrician",
     symptoms: [
       "vomiting", "dehydration", "seizure", "head injury", "moderate shortness of breath",
       "stable sepsis", "behavioral issue", "limb injury", "moderate blood loss"
@@ -196,6 +295,7 @@ const triageCategories = [
     category: "Category 4 (BLUE)",
     severity: "Potentially Serious Condition",
     responseTime: "Seen within 60 minutes",
+    recommendedSpecialization: "Dermatologist",
     symptoms: [
       "minor head injury", "vomiting without dehydration", "swollen eye",
       "mild pain", "soft tissue injury", "uncomplicated fracture", "fever"
@@ -205,6 +305,7 @@ const triageCategories = [
     category: "Category 5 (WHITE)",
     severity: "Less Urgent or Administrative",
     responseTime: "Seen within 120 minutes",
+    recommendedSpecialization: "General Practitioner",
     symptoms: [
       "mild symptoms", "minor abrasions", "medication refill", "no risk factors",
       "chronic psychiatric symptoms"
@@ -231,10 +332,18 @@ function findTriageCategory(symptomInput) {
     }
   }
 
-  return highestCategory || {
+  if (highestCategory) {
+    return {
+      ...highestCategory,
+      specialization: highestCategory.recommendedSpecialization
+    };
+  }
+
+  return {
     category: "Unclassified",
     severity: "Unknown",
-    responseTime: "Refer to triage nurse"
+    responseTime: "Refer to triage nurse",
+    specialization: "None"
   };
 }
 
