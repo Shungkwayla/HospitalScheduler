@@ -125,3 +125,20 @@ function showPopup(id) {
 function closePopup() {
   document.querySelectorAll(".popup-overlay").forEach(p => p.style.display = "none");
 }
+
+function getTreatmentDuration(category) {
+  switch (category) {
+    case 1:
+      return 150;  
+    case 2:
+      return 90;
+    case 3:
+      return 60;
+    case 4:
+      return 45;
+    case 5:
+      return 15;
+    default:
+      throw new Error("Invalid category. Must be 1–5.");
+  }
+}
