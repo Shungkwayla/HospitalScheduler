@@ -91,13 +91,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  form.addEventListener("submit", async e=>{
-    e.preventDefault();
-    const fd = new FormData(form);
-    const days = fd.getAll("days[]");
-    if (!days.length) return alert("Select at least one day.");
-    if (fd.get("timeIn") >= fd.get("timeOut"))
-      return alert("Shift End must be after Shift Start.");
+form.addEventListener("submit", async e=>{
+  e.preventDefault();
+  const fd = new FormData(form);
+  const days = fd.getAll("days[]");
+  if (!days.length) return alert("Select at least one day.");
+
+  if (fd.get("timeIn") === fd.get("timeOut"))
+    return alert("Shift End time must be different from Shift Start time.");
 
     fd.set("DoctorName", fmtName(fd.get("doctorName")));
     fd.set("AvailableDays", days.join(","));

@@ -5,14 +5,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const logBody = document.getElementById("log-body");
   const form = document.getElementById("patient-form");
 
-
   for (let i = 1; i <= 110; i++) {
     const op = document.createElement("option");
     op.value = i;
     op.textContent = `${i} year${i > 1 ? "s" : ""}`;
     ageDropdown.appendChild(op);
   }
-
 
   const updateClock = () => {
     const now = new Date();
@@ -22,25 +20,31 @@ document.addEventListener("DOMContentLoaded", () => {
   updateClock();
   setInterval(updateClock, 1000);
 
-  const removeExpiredRows = () => {
-    const now = new Date();
-    document.querySelectorAll("#log-body tr").forEach(tr => {
-      const endText = tr.dataset.end;
-      if (!endText) return;
+function removeExpiredRows() {
+  const now = new Date();
 
-      const [timePart, modifier] = endText.split(" ");
-      let [hours, minutes] = timePart.split(":").map(Number);
-      if (modifier === "PM" && hours !== 12) hours += 12;
-      if (modifier === "AM" && hours === 12) hours = 0;
+  document.querySelectorAll("#log-body tr").forEach(tr => {
+    const endText = tr.dataset.end;
+    if (!endText) return;
 
-      const endDate = new Date(now);
-      endDate.setHours(hours, minutes, 0, 0);
+    const todayDate = now.toISOString().split("T")[0]; 
 
-      if (now >= endDate) tr.remove();
-    });
-  };
-  removeExpiredRows();
-  setInterval(removeExpiredRows, 1000);
+    const endDateTimeString = `${todayDate} ${endText}`;
+    const endDate = new Date(endDateTimeString);
+
+    if (isNaN(endDate.getTime())) {
+      return;
+    }
+
+    if (now >= endDate) {
+      tr.remove();
+    }
+  });
+}
+
+
+setInterval(removeExpiredRows, 5000);
+
 
   async function loadLogs() {
     try {
@@ -48,11 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       if (data.status === "success") {
         data.logs.forEach(insertLogRow);
-      } else {
-        console.warn("Load logs failed:", data.message);
       }
     } catch (err) {
-      console.error("Error loading logs:", err);
     }
   }
   loadLogs();
@@ -61,15 +62,15 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
 
     const fd = new FormData(form);
-    fd.set("age", parseInt(fd.get("age"), 10) || 0);
-
     const condition = fd.get("condition")?.trim() || "";
     if (!condition) {
-      alert("Please enter a valid condition.");
+      alert("Enter condition");
       return;
     }
+    fd.set("age", parseInt(fd.get("age"), 10) || 0);
 
     const triage = findTriageCategory(condition);
+
     if (triage.category === "Unclassified") {
       showPopup("popup-no-specialization");
       return;
@@ -84,69 +85,54 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const now = new Date();
     const deadlineMinutes = parseDeadline(triage.responseTime);
-    const deadlineTime = new Date(now.getTime() + deadlineMinutes * 60000);
+    const deadlineDate = new Date(now.getTime() + deadlineMinutes * 60000);
 
-    fd.set("deadline", deadlineTime.toISOString().slice(0, 19).replace('T', ' '));
+    const schedulingResult = await assignDoctorToPatient({
+      condition,
+      deadline: deadlineDate.toISOString(),
+      duration: durationMinutes
+    });
 
-    const startTime = deadlineTime;
-    const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
-
-    fd.set("start_time", startTime.toLocaleTimeString('en-GB', { hour12: false }));
-    fd.set("end_time", endTime.toLocaleTimeString('en-GB', { hour12: false }));
+    if (schedulingResult.status === "success") {
+      fd.set("idDoctor", schedulingResult.doctor.idDoctor);
+      fd.set("DoctorName", schedulingResult.doctor.DoctorName);
+      fd.set("start_time", schedulingResult.start_time);
+      fd.set("end_time", schedulingResult.end_time);
+    } else {
+      showPopup("popup-no-doctor");
+      return;
+    }
 
     try {
       const res = await fetch("mysql.php", { method: "POST", body: fd });
       const data = await res.json();
-      console.log("Response from backend:", data);
-
       if (data.status === "success") {
         insertLogRow(data.row);
+
         const successDetails = document.getElementById("success-details");
         successDetails.innerHTML = `
           <div class="success-row">
             <p><span>Patient:</span> ${data.row.PatientName}</p>
             <p><span>Condition:</span> ${data.row.Condition}</p>
-            <p><span>Category:</span> ${triage.category}</p>
-            <p><span>Severity:</span> ${triage.severity}</p>
+            <p><span>Doctor:</span> ${data.row.DoctorName}</p>
           </div>
           <div class="success-row">
-            <p><span>Duration:</span> ${durationMinutes} mins</p>
-            <p><span>Start:</span> ${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
-            <p><span>End:</span> ${endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
+            <p><span>Duration:</span> ${data.row.Duration}</p>
+            <p><span>Start:</span> ${data.row.StartTime}</p>
+            <p><span>End:</span> ${data.row.EndTime}</p>
           </div>
         `;
         showPopup("popup-success");
         form.reset();
-      } else if (data.status === "no_doctor") {
-        showPopup("popup-no-doctor");
-      } else if (data.status === "error") {
-        console.error("Server error:", data.message);
-        alert("Server error: " + data.message);
       } else {
-        showPopup("popup-timeframe");
+        alert("Server error: " + data.message);
       }
     } catch (err) {
-      console.error("Fetch error:", err);
       alert("Request error: " + err.message);
     }
   });
-
 });
 
-function insertLogRow(r) {
-  const body = document.getElementById("log-body");
-  const tr = document.createElement("tr");
-  tr.dataset.end = r.EndTime;
-  tr.innerHTML = `
-    <td>${r.TimeLogged}</td>
-    <td>${r.PatientName}</td>
-    <td>${r.Condition}</td>
-    <td>${r.DoctorName}</td>
-    <td>${r.Duration}</td>
-    <td>${r.StartTime}</td>
-    <td>${r.EndTime}</td>`;
-  body.appendChild(tr);
-}
 
 function showPopup(id) {
   document.querySelectorAll(".popup-overlay").forEach(p => p.style.display = "none");
@@ -158,9 +144,23 @@ function showPopup(id) {
     el.classList.add("bounce-animation");
   }
 }
-
 function closePopup() {
   document.querySelectorAll(".popup-overlay").forEach(p => p.style.display = "none");
+}
+
+
+function insertLogRow(r) {
+  const tr = document.createElement("tr");
+  tr.dataset.end = r.EndTime;
+  tr.innerHTML = `
+    <td>${r.TimeLogged}</td>
+    <td>${r.PatientName}</td>
+    <td>${r.Condition}</td>
+    <td>${r.DoctorName}</td>
+    <td>${r.Duration}</td>
+    <td>${r.StartTime}</td>
+    <td>${r.EndTime}</td>`;
+  document.getElementById("log-body").appendChild(tr);
 }
 
 const triageCategories = [
@@ -212,35 +212,31 @@ const triageCategories = [
   }
 ];
 
-function findTriageCategory(symptomInput) {
-  const input = symptomInput.toLowerCase().split(/[,]+/).map(s => s.trim()).filter(Boolean);
-  let highestCategory = null;
-  let highestRank = Infinity;
+function findTriageCategory(input) {
+  const lower = input.toLowerCase().trim();
+  const allKeywords = [];
 
   for (const triage of triageCategories) {
-    const categoryNumber = parseInt(triage.category.match(/Category\s+(\d+)/)?.[1], 10);
     for (const keyword of triage.symptoms) {
-      for (const symptom of input) {
-        if (symptom === keyword.toLowerCase()) {
-          if (categoryNumber < highestRank) {
-            highestCategory = triage;
-            highestRank = categoryNumber;
-          }
-        }
-      }
+      allKeywords.push({ keyword: keyword.toLowerCase(), triage });
     }
   }
 
-  return highestCategory || {
-    category: "Unclassified",
-    severity: "Unknown",
-    responseTime: "Refer to triage nurse"
-  };
+  allKeywords.sort((a, b) => b.keyword.length - a.keyword.length);
+
+  for (const { keyword, triage } of allKeywords) {
+    if (lower.includes(keyword)) {
+      return triage;
+    }
+  }
+
+  return { category: "Unclassified", severity: "Unknown", responseTime: "Refer to triage nurse" };
 }
+
 
 function getTreatmentDuration(category) {
   const match = category.match(/Category\s+(\d+)/);
-  const cat = parseInt(match?.[1] || 0, 10);
+  const cat = parseInt(match?.[1] || 0);
   switch (cat) {
     case 1: return 150;
     case 2: return 90;
@@ -252,9 +248,103 @@ function getTreatmentDuration(category) {
 }
 
 function parseDeadline(responseTime) {
-  if (responseTime.toLowerCase().includes("immediately")) {
-    return 2;
+  if (responseTime.includes("Immediately")) return 2;
+  const m = responseTime.match(/(\d+)/);
+  return m ? parseInt(m[1]) : 0;
+}
+
+function getSpecializationForCategory(category) {
+  if (category.includes("Category 1")) {
+    return ["Emergency Medicine"];
   }
-  const match = responseTime.match(/(\d+)/);
-  return match ? parseInt(match[1], 10) : 0;
+  if (category.includes("Category 2")) {
+    return ["Critical Care", "Emergency Medicine"];
+  }
+  return ["General Practitioner", "Critical Care", "Emergency Medicine"];
+}
+
+async function assignDoctorToPatient({ condition, deadline, duration }) {
+  const triage = findTriageCategory(condition);
+  const allowedSpecializations = getSpecializationForCategory(triage.category).map(s => s.toLowerCase());
+  const deadlineDate = new Date(deadline);
+
+  const res = await fetch("get_doctors.php");
+  const data = await res.json();
+  if (data.status !== "success") {
+    return { status: "error", message: "Failed to get doctors" };
+  }
+
+  const now = new Date();
+  const dayOfWeek = now.toLocaleDateString("en-US", { weekday: "short" }).toLowerCase();
+  let bestOption = null;
+
+  for (const doc of data.doctors) {
+    if (!allowedSpecializations.includes(doc.Specialization.toLowerCase())) continue;
+
+    const days = doc.AvailableDays.split(",").map(d => d.trim().toLowerCase());
+    if (!days.includes(dayOfWeek)) continue;
+
+    const shiftStart = parseTimeToday(doc.ShiftStart);
+    const shiftEnd = parseTimeToday(doc.ShiftEnd);
+    if (shiftEnd <= shiftStart) shiftEnd.setDate(shiftEnd.getDate() + 1);
+
+    if (!(now >= shiftStart && now <= shiftEnd)) continue;
+
+    const latestRes = await fetch(`get_latest_end_time.php?doctorId=${doc.idDoctor}`).then(r => r.json());
+    let proposedStart;
+    if (latestRes.status === "success" && latestRes.latestEndDateTime) {
+      const latestEnd = new Date(latestRes.latestEndDateTime);
+      proposedStart = latestEnd > now ? latestEnd : now;
+    } else {
+      proposedStart = now;
+    }
+
+    const proposedEnd = new Date(proposedStart.getTime() + duration * 60000);
+    if (proposedEnd > shiftEnd) continue;
+    if (proposedStart > deadlineDate) continue;
+
+    if (
+      !bestOption ||
+      proposedStart < bestOption.proposedStart ||
+      (
+        proposedStart.getTime() === bestOption.proposedStart.getTime() &&
+        allowedSpecializations.indexOf(doc.Specialization.toLowerCase()) <
+          allowedSpecializations.indexOf(bestOption.doctor.Specialization.toLowerCase())
+      )
+    ) {
+      bestOption = {
+        doctor: doc,
+        proposedStart,
+        proposedEnd
+      };
+    }
+  }
+
+  if (bestOption) {
+    return {
+      status: "success",
+      doctor: bestOption.doctor,
+      start_time: formatDateTime(bestOption.proposedStart),
+      end_time: formatDateTime(bestOption.proposedEnd)
+    };
+  }
+
+  return { status: "cannot_fit" };
+}
+
+function parseTimeToday(timeStr) {
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  const now = new Date();
+  now.setHours(hours, minutes || 0, 0, 0);
+  return now;
+}
+
+function formatDateTime(dt) {
+  const yyyy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  const hh = String(dt.getHours()).padStart(2, '0');
+  const mi = String(dt.getMinutes()).padStart(2, '0');
+  const ss = String(dt.getSeconds()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
 }
