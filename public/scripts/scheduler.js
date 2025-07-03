@@ -1,3 +1,4 @@
+//UI backend
 document.addEventListener("DOMContentLoaded", () => {
 
   const dateLabel  = document.getElementById("date");
@@ -13,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ageDropdown.appendChild(op);
   }
 
-  
   const updateClock = () => {
     const now = new Date();
     dateLabel.textContent = now.toLocaleDateString();
@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
   removeExpiredRows();
   setInterval(removeExpiredRows, 1_000); 
 
+  //Database backend
   async function loadLogs() {
     try {
       const res = await fetch("get_logs.php");
@@ -57,43 +58,82 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   loadLogs();
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const fd = new FormData(form);
-    fd.set("age", parseInt(fd.get("age"), 10) || 0); 
+  //To edit when scheduler added
+ form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    try {
-      const res = await fetch("mysql.php", { method: "POST", body: fd });
-      const data = await res.json();
+  const fd = new FormData(form);
+  fd.set("age", parseInt(fd.get("age"), 10) || 0); 
 
-      if (data.status === "success") {
-        insertLogRow(data.row);
-    const successDetails = document.getElementById("success-details");
-          successDetails.innerHTML = `
-            <div class="success-row">
-              <p><span>Patient:</span> ${data.row.PatientName}</p>
-              <p><span>Condition:</span> ${data.row.Condition}</p>
-              <p><span>Doctor:</span> ${data.row.DoctorName}</p>
-            </div>
-            <div class="success-row">
-              <p><span>Duration:</span> ${data.row.Duration}</p>
-              <p><span>Start:</span> ${data.row.StartTime}</p>
-              <p><span>End:</span> ${data.row.EndTime}</p>
-            </div>
-          `;
-          showPopup("popup-success");
-          form.reset();
-        } else if (data.status === "no_doctor") {
-          showPopup("popup-no-doctor");
-        } else {
-          showPopup("popup-timeframe");
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-        alert("Request error: " + err.message);
-      }
-    });
-  });
+  const condition = fd.get("condition")?.trim() || "";
+  if (!condition) {
+    alert("Please enter a valid condition.");
+    return;
+  }
+
+  const triage = findTriageCategory(condition);
+
+   if (triage.category === "Unclassified") {
+  showPopup("popup-no-specialization");
+  return;
+  }
+   
+  fd.set("triage_category", triage.category);
+  fd.set("triage_severity", triage.severity);
+  fd.set("triage_response_time", triage.responseTime);
+
+  const durationMinutes = getTreatmentDuration(triage.category); //Treatment Duration
+  fd.set("duration", durationMinutes);
+
+   //Dito ilalagay yung sa deadline at scheduler siguro 
+
+
+   
+  const now = new Date();
+  const startTime = now.toISOString().slice(0, 19).replace('T', ' '); //Edit pag may scheduler na
+  const endTime = new Date(now.getTime() + durationMinutes * 60000)
+    .toISOString()
+    .slice(0, 19)
+    .replace('T', ' ');
+
+  fd.set("start_time", startTime);
+  fd.set("end_time", endTime);
+
+
+  try {
+    const res = await fetch("mysql.php", { method: "POST", body: fd });
+    const data = await res.json();
+
+    if (data.status === "success") {
+      insertLogRow(data.row);
+
+      const successDetails = document.getElementById("success-details");
+      successDetails.innerHTML = `
+        <div class="success-row">
+          <p><span>Patient:</span> ${data.row.PatientName}</p>
+          <p><span>Condition:</span> ${data.row.Condition}</p>
+          <p><span>Category:</span> ${triage.category}</p>
+          <p><span>Severity:</span> ${triage.severity}</p>
+        </div>
+        <div class="success-row">
+          <p><span>Duration:</span> ${durationMinutes} mins</p>
+          <p><span>Start:</span> ${startTime}</p>
+          <p><span>End:</span> ${endTime}</p>
+        </div>
+      `;
+      showPopup("popup-success");
+      form.reset();
+    } else if (data.status === "no_doctor") {
+      showPopup("popup-no-doctor");
+    } else {
+      showPopup("popup-timeframe");
+    }
+  } catch (err) {
+    console.error("Fetch error:", err);
+    alert("Request error: " + err.message);
+  }
+});
+
 
 
 function insertLogRow(r) {
@@ -126,19 +166,85 @@ function closePopup() {
   document.querySelectorAll(".popup-overlay").forEach(p => p.style.display = "none");
 }
 
+//scheduler & triage
+
+const triageCategories = [
+  {
+    category: "Category 1 (RED)",
+    severity: "Life Threatening Conditions",
+    responseTime: "Seen Immediately",
+    symptoms: [
+      "cardiac arrest", "respiratory arrest", "extreme respiratory distress",
+      "severe shock", "prolonged seizure", "GCS less than 9", "IV overdose",
+      "severe behavioral disorder"
+    ]
+  },
+  {
+    category: "Category 2 (ORANGE)",
+    severity: "Imminently Life Threatening or Severe Pain",
+    responseTime: "Seen within 10 minutes",
+    symptoms: [
+      "airway risk", "febrile neutropenia", "acute stroke", "testicular torsion",
+      "severe hypertension", "toxic ingestion", "severe chest pain", "ectopic pregnancy"
+    ]
+  },
+  {
+    category: "Category 3 (GREEN)",
+    severity: "Potentially Life Threatening or Severe Pain",
+    responseTime: "Seen within 30 minutes",
+    symptoms: [
+      "vomiting", "dehydration", "seizure", "head injury", "moderate shortness of breath",
+      "stable sepsis", "behavioral issue", "limb injury", "moderate blood loss"
+    ]
+  },
+  {
+    category: "Category 4 (BLUE)",
+    severity: "Potentially Serious Condition",
+    responseTime: "Seen within 60 minutes",
+    symptoms: [
+      "minor head injury", "vomiting without dehydration", "swollen eye",
+      "mild pain", "soft tissue injury", "uncomplicated fracture", "fever"
+    ]
+  },
+  {
+    category: "Category 5 (WHITE)",
+    severity: "Less Urgent or Administrative",
+    responseTime: "Seen within 120 minutes",
+    symptoms: [
+      "mild symptoms", "minor abrasions", "medication refill", "no risk factors",
+      "chronic psychiatric symptoms"
+    ]
+  }
+];
+
+function findTriageCategory(symptomInput) {
+  const lowerSymptom = symptomInput.trim().toLowerCase();
+
+  for (const triage of triageCategories) {
+    for (const keyword of triage.symptoms) {
+      if (lowerSymptom === keyword.toLowerCase()) {
+        return triage;
+      }
+    }
+  }
+
+  return {
+    category: "Unclassified",
+    severity: "Unknown",
+    responseTime: "Refer to triage nurse",
+  };
+}
+
 function getTreatmentDuration(category) {
-  switch (category) {
-    case 1:
-      return 150;  
-    case 2:
-      return 90;
-    case 3:
-      return 60;
-    case 4:
-      return 45;
-    case 5:
-      return 15;
-    default:
-      throw new Error("Invalid category. Must be 1–5.");
+  const match = category.match(/Category\s+(\d+)/);
+
+  const cat = parseInt(match[1], 10);
+  switch (cat) {
+    case 1: return 150; 
+    case 2: return 90;
+    case 3: return 60;
+    case 4: return 45;
+    case 5: return 15;
   }
 }
+
