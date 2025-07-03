@@ -218,14 +218,28 @@ const triageCategories = [
 ];
 
 function findTriageCategory(symptomInput) {
-  const lowerSymptom = symptomInput.trim().toLowerCase();
+  const input = symptomInput.toLowerCase().split(/[,]+/).map(s => s.trim()).filter(Boolean);
+
+  let highestCategory = null;
+  let highestRank = Infinity;
 
   for (const triage of triageCategories) {
+    const categoryNumber = parseInt(triage.category.match(/Category\s+(\d+)/)?.[1], 10);
+
     for (const keyword of triage.symptoms) {
-      if (lowerSymptom === keyword.toLowerCase()) {
-        return triage;
+      for (const symptom of input) {
+        if (symptom === keyword.toLowerCase()) {
+          if (categoryNumber < highestRank) {
+            highestCategory = triage;
+            highestRank = categoryNumber;
+          }
+        }
       }
     }
+  }
+
+  if (highestCategory) {
+    return highestCategory;
   }
 
   return {
