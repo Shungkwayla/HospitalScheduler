@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
     op.textContent = `${i} year${i > 1 ? "s" : ""}`;
     ageDropdown.appendChild(op);
   }
-});
 
   const updateClock = () => {
     const now = new Date();
@@ -43,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
   removeExpiredRows();
   setInterval(removeExpiredRows, 1_000); 
 
+
   //Database backend
   async function loadLogs() {
     try {
@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   loadLogs();
+});
 
   //To edit when scheduler added
  form.addEventListener("submit", async (e) => {
