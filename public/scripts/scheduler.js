@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     op.textContent = `${i} year${i > 1 ? "s" : ""}`;
     ageDropdown.appendChild(op);
   }
+});
 
   const updateClock = () => {
     const now = new Date();
