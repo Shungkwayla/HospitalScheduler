@@ -12,29 +12,31 @@ if ($mysqli->connect_error) {
   exit;
 }
 
-$name         = $_POST['fullname']    ?? '';
-$age          = intval($_POST['age']  ?? 0);
-$sex          = $_POST['sex']         ?? '';
-$allergies    = $_POST['allergies']   ?? '';
-$chronic      = $_POST['illnesses']   ?? '';
-$condition    = $_POST['admission']   ?? '';
-$patientPhone = $_POST['mobile']      ?? '';
+$name         = $_POST['fullname'] ?? '';
+$age          = intval($_POST['age'] ?? 0);
+$sex          = $_POST['sex'] ?? '';
+$allergies    = $_POST['allergies'] ?? '';
+$chronic      = $_POST['illnesses'] ?? '';
+$condition    = $_POST['condition'] ?? '';
+$patientPhone = $_POST['mobile'] ?? '';
 $ecName       = $_POST['contactName'] ?? '';
-$ecPhone      = $_POST['contactNo']   ?? '';
+$ecPhone      = $_POST['contactNo'] ?? '';
+$startTime    = $_POST['start_time'] ?? '';
+$endTime      = $_POST['end_time'] ?? '';
 
-if (!$name || !$condition || !$patientPhone || !$ecName || !$ecPhone || $age <= 0) {
+if (!$name || !$condition || !$patientPhone || !$ecName || !$ecPhone || $age <= 0 || !$startTime || !$endTime) {
   echo json_encode(["status" => "error", "message" => "Missing or invalid input"]);
   exit;
 }
 
 $docSql = "SELECT idDoctor, DoctorName FROM doctor ORDER BY RAND() LIMIT 1";
-$doc    = $mysqli->query($docSql)->fetch_assoc();
+$doc = $mysqli->query($docSql)->fetch_assoc();
 if (!$doc) {
   echo json_encode(["status" => "no_doctor"]);
   exit;
 }
 $idDoctor = $doc['idDoctor'];
-$docName  = $doc['DoctorName'];
+$docName = $doc['DoctorName'];
 
 $patStmt = $mysqli->prepare(
   "INSERT INTO patient (PatientName, PatientAge, PatientAllergies, PatientChronicIll, PatientContactNo, ContactPerson, ContactPersonNo)
@@ -48,15 +50,12 @@ if (!$patStmt->execute()) {
 $idPatient = $patStmt->insert_id;
 $patStmt->close();
 
-$now        = new DateTime('now', new DateTimeZone('Asia/Manila'));
-$dateLogged = $now->format('Y-m-d');
-$timeLogged = $now->format('H:i:s'); 
 
-$duration   = "30 mins";
-$startTime  = $now->format('H:i:s');
-$endTimeObj = clone $now;
-$endTimeObj->modify('+30 minutes');
-$endTime    = $endTimeObj->format('H:i:s');
+$now = new DateTime('now', new DateTimeZone('Asia/Manila'));
+$dateLogged = $now->format('Y-m-d');
+$timeLogged = $now->format('H:i:s');
+$durationMinutes = intval($_POST['duration'] ?? 30);
+$duration = "{$durationMinutes} mins";
 
 $logStmt = $mysqli->prepare(
   "INSERT INTO logs (DateLogged, TimeLogged, idPatient, `Condition`, idDoctor, Duration, StartTime, EndTime)
@@ -69,16 +68,19 @@ if (!$logStmt->execute()) {
 }
 $logStmt->close();
 
+$startTimeObj = new DateTime($startTime, new DateTimeZone('Asia/Manila'));
+$endTimeObj = new DateTime($endTime, new DateTimeZone('Asia/Manila'));
+
 echo json_encode([
   "status" => "success",
   "row" => [
-    "TimeLogged"  => date("h:i A", strtotime($timeLogged)),
+    "TimeLogged" => $now->format("h:i A"),
     "PatientName" => $name,
-    "Condition"   => $condition,
-    "DoctorName"  => $docName,
-    "Duration"    => $duration,
-    "StartTime"   => date("h:i A", strtotime($startTime)),
-    "EndTime"     => date("h:i A", strtotime($endTime))
+    "Condition" => $condition,
+    "DoctorName" => $docName,
+    "Duration" => $duration,
+    "StartTime" => $startTimeObj->format("h:i A"),
+    "EndTime" => $endTimeObj->format("h:i A")
   ]
 ]);
 ?>
