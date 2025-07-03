@@ -85,20 +85,42 @@ document.addEventListener("DOMContentLoaded", () => {
   const durationMinutes = getTreatmentDuration(triage.category); //Treatment Duration
   fd.set("duration", durationMinutes);
 
-   //Dito ilalagay yung sa deadline at scheduler siguro 
-
-
+   //Dito ilalagay yung sa deadline at scheduler siguro
    
   const now = new Date();
-  const startTime = now.toISOString().slice(0, 19).replace('T', ' '); //Edit pag may scheduler na
-  const endTime = new Date(now.getTime() + durationMinutes * 60000)
-    .toISOString()
-    .slice(0, 19)
-    .replace('T', ' ');
+  // Deadline Based on Response Time
+  function parseDeadline(responseTime) {
+    const match = responseTime.match(/(\d+)/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
 
-  fd.set("start_time", startTime);
-  fd.set("end_time", endTime);
+  const deadlineMinutes = parseDeadline(triage.responseTime);
+  const deadlineTime = new Date(now.getTime() + deadlineMinutes * 60000);
+  fd.set("deadline", deadlineTime.toISOString().slice(0, 19).replace('T', ' '));
 
+  // Call Doctor Available
+  let assignedDoctor = null;
+  try {
+    const checkDoctor = await fetch("check-doctor.php", {
+      method: "POST",
+      body: fd,
+    });
+    const checkResult = await checkDoctor.json();
+
+    if (checkResult.status === "available") {
+      assignedDoctor = checkResult.doctor;
+      fd.set("doctor_id", assignedDoctor.id);
+      fd.set("start_time", checkResult.start_time);
+      fd.set("end_time", checkResult.end_time);
+    } else {
+      showPopup("popup-no-doctor");
+      return;
+    }
+  } catch (err) {
+    console.error("Error checking doctor:", err);
+    alert("Unable to verify doctor availability.");
+    return;
+  }
 
   try {
     const res = await fetch("mysql.php", { method: "POST", body: fd });
