@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function load() {
-    const res = await fetch("doctors.php?ts="+Date.now());
+    const res = await fetch("./php/doctors.php?ts="+Date.now());
     const rows = await res.json();
     cache = Object.fromEntries(rows.map(r=>[r.idDoctor, r]));
     renderList(rows);
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const fd = new FormData();
       fd.append("action","delete");
       fd.append("idDoctor",id);
-      const res = await fetch("doctors.php",{method:"POST",body:fd});
+      const res = await fetch("./php/doctors.php",{method:"POST",body:fd});
       const js  = await res.json();
       if (js.status === "success") load();
       else alert(js.message || "Delete failed");
@@ -107,7 +107,7 @@ form.addEventListener("submit", async e=>{
     fd.set("ShiftStart", fd.get("timeIn"));
     fd.set("ShiftEnd", fd.get("timeOut"));
 
-    const res = await fetch("doctors.php",{method:"POST",body:fd});
+    const res = await fetch("./php/doctors.php",{method:"POST",body:fd});
     const js  = await res.json();
     if (js.status === "success") {
       resetForm();

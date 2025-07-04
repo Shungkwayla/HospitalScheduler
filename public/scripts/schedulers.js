@@ -48,7 +48,7 @@ setInterval(removeExpiredRows, 5000);
 
   async function loadLogs() {
     try {
-      const res = await fetch("get_logs.php");
+      const res = await fetch("php/get_logs.php");
       const data = await res.json();
       if (data.status === "success") {
         data.logs.forEach(insertLogRow);
@@ -107,7 +107,7 @@ setInterval(removeExpiredRows, 5000);
     }
 
     try {
-      const res = await fetch("mysql.php", { method: "POST", body: fd });
+      const res = await fetch("php/mysql.php", { method: "POST", body: fd });
       const data = await res.json();
       if (data.status === "success") {
         insertLogRow(data.row);
@@ -271,7 +271,7 @@ async function assignDoctorToPatient({ condition, deadline, duration }) {
   const allowedSpecializations = getSpecializationForCategory(triage.category).map(s => s.toLowerCase());
   const deadlineDate = new Date(deadline);
 
-  const res = await fetch("get_doctors.php");
+  const res = await fetch("php/get_doctors.php");
   const data = await res.json();
   if (data.status !== "success") {
     return { status: "error", message: "Failed to get doctors" };
@@ -296,7 +296,7 @@ async function assignDoctorToPatient({ condition, deadline, duration }) {
 
     if (!(now >= shiftStart && now <= shiftEnd)) continue;
 
-    const latestRes = await fetch(`get_latest_end_time.php?doctorId=${doc.idDoctor}`).then(r => r.json());
+    const latestRes = await fetch(`php/get_latest_end_time.php?doctorId=${doc.idDoctor}`).then(r => r.json());
     let proposedStart;
     if (latestRes.status === "success" && latestRes.latestEndDateTime) {
       const latestEnd = new Date(latestRes.latestEndDateTime);
