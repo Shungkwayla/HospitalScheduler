@@ -72,7 +72,7 @@ setInterval(removeExpiredRows, 5000);
     const triage = findTriageCategory(condition);
 
     if (triage.category === "Unclassified") {
-      showPopup("popup-no-specialization");
+      showPopup("popup-no-doctor");
       return;
     }
 
@@ -98,8 +98,11 @@ setInterval(removeExpiredRows, 5000);
       fd.set("DoctorName", schedulingResult.doctor.DoctorName);
       fd.set("start_time", schedulingResult.start_time);
       fd.set("end_time", schedulingResult.end_time);
-    } else {
+    } else if(schedulingResult.status === "no-specialization"){
       showPopup("popup-no-doctor");
+      return;
+    } else {
+      showPopup("popup-timeframe");
       return;
     }
 
@@ -277,9 +280,12 @@ async function assignDoctorToPatient({ condition, deadline, duration }) {
   const now = new Date();
   const dayOfWeek = now.toLocaleDateString("en-US", { weekday: "short" }).toLowerCase();
   let bestOption = null;
+  let hasMatchingSpecialization = false;
 
   for (const doc of data.doctors) {
     if (!allowedSpecializations.includes(doc.Specialization.toLowerCase())) continue;
+
+    hasMatchingSpecialization = true;
 
     const days = doc.AvailableDays.split(",").map(d => d.trim().toLowerCase());
     if (!days.includes(dayOfWeek)) continue;
@@ -327,6 +333,10 @@ async function assignDoctorToPatient({ condition, deadline, duration }) {
       start_time: formatDateTime(bestOption.proposedStart),
       end_time: formatDateTime(bestOption.proposedEnd)
     };
+  }
+
+  if (!hasMatchingSpecialization) {
+    return { status: "no-specialization" };
   }
 
   return { status: "cannot_fit" };
